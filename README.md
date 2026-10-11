@@ -42,6 +42,13 @@ python tools/run_room_shared_dev.py --port 8877
 
 家具交互统一通过 `room_use_furniture` 完成，不为每件家具增加一个 MCP 工具。
 
+## 远程使用
+
+本 fork 增加了单端口的远程网页登录与 Streamable HTTP MCP 网关。
+配置独立的房间密码、MCP 令牌、HTTPS 地址及持久数据库路径后运行
+`python -m room_service.remote`，并通过 HTTPS 代理访问。
+详情见 [远程部署说明](docs/room-tutorials/09-remote-room.md)。
+
 ## 默认人物与自定义人物素材
 
 不准备额外人物素材也可以直接运行。仓库自带 `owner` 和 `companion` 两个匿名几何 SVG 小人，用于演示移动、状态同步和家具交互；它们没有私人 OC 特征，并随代码采用 MIT License。默认示例在不同动作中复用同一张 SVG，因此状态会变化，但不会显示精细的走路、坐下或睡觉姿势。
