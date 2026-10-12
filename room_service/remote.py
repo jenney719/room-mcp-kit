@@ -34,9 +34,39 @@ main{background:#fffaf2;padding:32px;border-radius:18px;width:min(320px,75vw);bo
 h1{margin-top:0}input,button{box-sizing:border-box;width:100%;padding:12px;font:inherit;border-radius:8px;border:1px solid #c8b99e}
 button{margin-top:16px;background:#755c46;color:white;cursor:pointer}p{line-height:1.6}
 </style><main><h1>Room</h1><p>输入房间密码，进入我们的像素房间。</p>
-<form method="post" action="/login"><label for="password">房间密码</label>
+<form id="room-login-form" method="post" action="/login"><label for="password">房间密码</label>
 <input id="password" name="password" type="password" autocomplete="current-password" required autofocus maxlength="256">
-<button>进入房间</button></form>MESSAGE</main></html>"""
+<button>进入房间</button></form><p id="login-error" role="status" aria-live="polite"></p>MESSAGE</main>
+<script>
+const form = document.getElementById('room-login-form');
+form.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = form.querySelector('button');
+  const message = document.getElementById('login-error');
+  button.disabled = true;
+  message.textContent = '';
+  try {
+    // CORS-mode fetch preserves the real same-origin Origin under no-referrer.
+    // A normal form navigation would send Origin: null and fail the CSRF guard.
+    const response = await fetch(form.action, {
+      method: 'POST', mode: 'cors', credentials: 'same-origin', cache: 'no-store',
+      body: new URLSearchParams(new FormData(form)),
+    });
+    const destination = new URL(response.url);
+    if (response.ok && response.redirected && destination.origin === location.origin && destination.pathname === '/') {
+      location.replace('/');
+      return;
+    }
+    message.textContent = response.status === 401 ? '密码不正确。'
+      : response.status === 429 ? '尝试次数过多，请稍后再试。'
+      : '登录未完成，请刷新页面后再试。';
+  } catch (_error) {
+    message.textContent = '连接失败，请稍后重试。';
+  } finally {
+    button.disabled = false;
+  }
+});
+</script></html>"""
 
 
 @dataclass(frozen=True)

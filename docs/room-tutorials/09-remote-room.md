@@ -42,3 +42,21 @@ HTTPS 代理转发到 `127.0.0.1:18460`，保留 Host，传递 X-Forwarded-Proto
 验证未认证的 `/health` 与 `/mcp` 返回 401，网页登录可读取 Room 状态，
 认证 MCP 能初始化并列出四个工具，网页和 MCP 的 revision 一致。
 公开 HTTPS、证书和实际客户端连接均应单独验收。
+
+## 浏览器登录回归检查
+
+登录页通过同源、CORS 模式的 fetch 提交密码。普通表单导航在
+`Referrer-Policy: no-referrer` 下会发送 `Origin: null`，无法通过严格来源校验。
+服务仍拒绝 null、缺失和外站 Origin，参见 [Fetch 规范](https://fetch.spec.whatwg.org/#append-a-request-origin-header)。
+
+额外安装仅供测试的 Playwright 后，可以运行真实浏览器检查：
+
+```powershell
+python -m pip install playwright
+python tools/check_remote_browser_login.py
+```
+
+脚本使用本地临时 HTTPS 服务与测试凭据，不访问真实服务器或真实密码。
+验证错误密码提示、正确登录、Secure Cookie、共享状态和房间 Canvas 启动。
+Windows 优先使用已安装的 Edge/Chrome；其他环境可通过 `ROOM_TEST_BROWSER`
+指定 Chromium 可执行文件，或先运行 `python -m playwright install chromium`。

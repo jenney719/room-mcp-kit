@@ -74,6 +74,13 @@ class RemoteRoomTests(unittest.TestCase):
         self.assertEqual(429, self.client.post("/login", data={"password": PASSWORD}, headers={"Origin": ORIGIN}).status_code)
         self.assertEqual(413, self.client.post("/login", content=b"a" * 5000, headers={"Origin": ORIGIN}).status_code)
 
+    def test_null_missing_and_foreign_login_origins_remain_rejected(self):
+        for headers in [{}, {"Origin": "null"}, {"Origin": "https://evil.example"}]:
+            response = self.client.post("/login", data={"password": PASSWORD}, headers=headers, follow_redirects=False)
+            self.assertEqual(403, response.status_code)
+            self.assertEqual("invalid_origin", response.json()["error"])
+            self.assertNotIn("set-cookie", response.headers)
+
     def test_real_http_mcp_initialize_tools_and_rest_shared_state(self):
         result = self.mcp("initialize", {"protocolVersion": "2025-11-25", "capabilities": {}, "clientInfo": {"name": "room-test", "version": "1"}})
         self.assertEqual(200, result.status_code, result.text)
